@@ -150,4 +150,130 @@ top_perform_per_ContentType = pd.concat([top_CTR_per_ContentType,
                                         top_CPC_per_ContentType[['CPC']],
                                         top_CPA_per_ContentType[['CPA']]], axis=1)
 
+### Demographic insights
 
+#If the goal is high engagement, target 35-44 or if your goal is efficient conversion, 
+#focus on 55+:
+#55+ age group interact the most with ads (CTR) and they are most likely to complete the desired 
+#action after clicking an ad (Conversion Rate).The 35-44 age group has the highest clicks and 
+#conversions, making it the top-performing segment in terms of total engagement and conversions.
+
+
+age_group_analysis = Data.groupby('Target_Age').agg({
+    'Clicks': 'sum','CTR': 'mean','Conversions': 'sum','Conversion_Rate': 
+        'mean'}).reset_index()
+    
+#Females engage more (higher clicks, CTR) but convert slightly less efficiently. Males convert 
+#slightly better despite having fewer clicks.For maximum conversions, a mixed audience ("All") 
+#seems to perform best.
+
+gender_group_analysis = Data.groupby('Target_Gender').agg({
+    'Clicks': 'sum','CTR': 'mean','Conversions': 'sum','Conversion_Rate': 
+        'mean'}).reset_index()
+
+gender_group_analysis.to_excel('gender_group_analysis.xlsx', index=False)
+
+#If the goal is more engagement, target India. If the goal is more conversions, focus on the UK
+#& Germany:
+# India has the highest CTR, meaning users are most likely to click.The UK leads in both total 
+#conversions and conversion rate.Germany performs well in both aspects.
+
+region_group_analysis = Data.groupby('Region').agg({
+    'Clicks': 'sum','CTR': 'mean','Conversions': 'sum','Conversion_Rate': 
+        'mean'}).reset_index()
+   
+region_group_analysis.to_excel('region_group_analysis.xlsx', index=False)
+
+#Budget efficency
+
+correlation = Data[['Budget', 'Conversions', 'Conversion_Rate']].corr()
+print("\nCorrelation Matrix:")
+print(correlation)
+
+correlation.to_excel('correlation.xlsx', index=False)
+
+# Visualizing budget vs. conversions
+plt.figure(figsize=(8,6))
+sns.scatterplot(x=Data['Budget'], y=Data['Conversions'])
+plt.xlabel("Budget (USD)")
+plt.ylabel("Conversions")
+plt.title("Budget vs. Conversions")
+plt.show()
+
+# Identifying diminishing returns with a regression plot
+plt.figure(figsize=(8,6))
+
+sns.regplot(x=Data['Budget'], y=Data['Conversion_Rate'])
+plt.xlabel("Budget (USD)")
+plt.ylabel("Conversion Rate")
+plt.title("Budget vs. Conversion Rate")
+plt.show()
+
+##### 4. Segmentation & Optimizations
+
+# Most are classified as underperform campaign because the CTR, Conversion Rate and CPC
+#are under the mean. The suggestion to improve are: 
+# 1.Improve ad copy,visuals,or targeting,reduce bidding or improve targeting efficiency-> 149 campaign
+# 2.Refine landing pages, offer optimization. -> 129 campaigns
+
+# Group data by platform, content type, target age, and region
+grouped_df = Data.groupby(['Platform', 'Content_Type', 'Target_Age', 'Region']).agg(
+    avg_CTR=('CTR', 'mean'),
+    avg_CPC=('CPC', 'mean'),
+    avg_Conversion_Rate=('Conversion_Rate', 'mean'),
+    total_Clicks=('Clicks', 'sum'),
+    total_Conversions=('Conversions', 'sum')).reset_index()
+
+# Thresholds for performance
+CTR_threshold = Data['CTR'].median()  # Median CTR as a cutoff
+conversion_rate_threshold = Data['Conversion_Rate'].median()  # Median Conversion Rate
+CPC_threshold = Data['CPC'].median()  # Median CPC as a cutoff
+
+# New column to classify performance based on CTR, Conversion Rate and CPC
+def classify_performance(row):
+    # High Performance: High CTR, high Conversion Rate, low CPC
+    if row['avg_CTR'] >= CTR_threshold and row['avg_Conversion_Rate'] >= conversion_rate_threshold and row['avg_CPC'] <= CPC_threshold:
+        return 'High Performance'
+    else:
+        return 'Low Performance'
+
+# Apply the classification function to each row
+grouped_df['Performance'] = grouped_df.apply(classify_performance, axis=1)
+
+# Segmentation results
+top_performing_segments = grouped_df[grouped_df['Performance'] == 'High Performance']
+underperforming_segments = grouped_df[grouped_df['Performance'] == 'Low Performance']
+
+print("Top-Performing Segments:")
+print(top_performing_segments[['Platform', 'Content_Type', 'Target_Age', 'Region', 'avg_CTR', 'avg_Conversion_Rate', 'avg_CPC']])
+
+print("\nUnderperforming Segments:")
+print(underperforming_segments[['Platform', 'Content_Type', 'Target_Age', 'Region', 'avg_CTR', 'avg_Conversion_Rate', 'avg_CPC']])
+
+# Optimization strategies for underperforming segments
+def optimization_suggestions(segment):
+    suggestions = []
+    if segment['avg_CTR'] < CTR_threshold:
+        suggestions.append("Improve ad copy, visuals, or targeting.")
+    if segment['avg_Conversion_Rate'] < conversion_rate_threshold:
+        suggestions.append("Refine landing pages, offer optimization.")
+    if segment['avg_CPC'] > CPC_threshold:
+        suggestions.append("Reduce bidding or improve targeting efficiency.")
+    return ', '.join(suggestions)
+
+underperforming_segments['Optimization_Strategy'] = underperforming_segments.apply(optimization_suggestions, axis=1)
+
+# Display optimization strategies
+print("\nOptimization Suggestions for Underperforming Segments:")
+print(underperforming_segments[['Platform', 'Content_Type', 'Target_Age', 'Region', 'Optimization_Strategy']])
+
+Underperform_Strategy = underperforming_segments['Optimization_Strategy'].value_counts()
+
+#### 5. Recommendations & Next Steps
+#Based on insights, the data-driven recommendations are:
+# -	Allocate more budget to the highest-performing:
+#   platforms (Google (17), Youtube (17) and Facebook (15)),
+#   age groups (45-54, 25-34), 
+#   content types (Image, Carousel, text)
+#	- Refine targeting by removing underperforming segments.
+# - Consider alternative platforms if conversion rates are consistently low.
