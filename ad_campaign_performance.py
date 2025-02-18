@@ -6,11 +6,11 @@ Created on Tue Jan 28 13:19:24 2025
 """
 ######################### AD CAMPAIGN PERFORMANCE ############################
 
-# 1. Exploratory Data Analysis ............... line(16-68)
-# 2. Key Performance Metrics
-# 3. Performance Analysis
-# 4. Segmentation & Optimizations
-# 5. Recomendations & next setps
+# 1. Exploratory Data Analysis ............... line(16-71)
+# 2. Key Performance Metrics   ............... line(72-85)
+# 3. Performance Analysis      ............... line(86-211)
+# 4. Segmentation & Optimizations ............ line(212- 226)
+# 5. Recomendations & next setps ............. line(272-279)
 
 
 ##### 1. Exploratory Data Analysis 
@@ -83,7 +83,7 @@ Data['CPC'] = Data.apply(lambda row: row['Budget'] / row['Clicks'], axis = 1)
 
 Data['CPA'] = Data.apply(lambda row: row['Budget'] / row['Conversions'], axis = 1)
 
-##### 2. Performance Analysis
+##### 3. Performance Analysis
 # Analyze the effectiveness of different factors in the campaign.
 
 ### Platform Performance
