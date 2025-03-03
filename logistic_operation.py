@@ -72,7 +72,7 @@ sns.pairplot(numeric_df, diag_kind='kde', corner=True)
 plt.show()
 
 ##### 2. Predictive Modeling for delay status: Random forest is the best model to predict when 
-#the status its going to be "delay" or not
+#the status its going to be "delay" or not. Shipment status and traffic Sattus are the most important features for the prediction.
 
 target = 'Logistics_Delay'
 features_to_drop = ['Timestamp', 'Asset_ID', target]
