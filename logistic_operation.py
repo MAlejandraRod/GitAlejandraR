@@ -5,7 +5,7 @@ Created on Mon Mar  3 14:41:30 2025
 @author: aleja
 """
 
-######################### AD CAMPAIGN PERFORMANCE ############################
+######################### LOGISTIC OPERATION ############################
 
 # 1. Exploratory Data Analysis ............... line(14-74)
 # 2. Predictive Modeling       ............... line(75-120)
